@@ -1,0 +1,42 @@
+pipeline {
+
+     parameters {
+        string(name: 'environment', defaultValue: 'prd', description: 'Workspace/Environment file to use for deployment')
+        string(name: 'region', defaultValue: 'us-west-2', description: 'Workspace/region file to use for deployment')
+        
+
+    }     
+    agent any
+    stages {
+        stage('Download terraform code from Gihub') { 
+            steps {
+                git credentialsId: 'kakarlapudi-rama', url: 'https://github.com/kakarlapudi-rama/jenkinpractice.git'
+            }    
+        }
+        stage('Terraform Ininitialization') {
+            steps {
+                sh """
+                    cd /var/lib/jenkins/workspace/terraformjob
+                    terraform init -reconfigure
+                """    
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                sh """
+                    cd /var/lib/jenkins/workspace/terraformjob
+                    terraform plan -out=plan.${BUILD_NUMBER} 
+                """
+            }    
+        }
+        stage('Terraform Apply') {
+            steps {
+                sh """
+                    cd /var/lib/jenkins/workspace/terraformjob
+                    terraform apply plan.${BUILD_NUMBER}
+                """
+            }
+        }
+    }    
+}
+
