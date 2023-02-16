@@ -1,23 +1,24 @@
 pipeline {
 
      parameters {
-        string(name: 'environment', defaultValue: 'prd', description: 'Workspace/Environment file to use for deployment')
+        string(name: 'environment', defaultValue: 'DEV', description: 'Workspace/Environment file to use for deployment')
         string(name: 'region', defaultValue: 'us-west-2', description: 'Workspace/region file to use for deployment')
         
 
     }     
     agent any
     stages {
-        stage('destroy my terraform') { 
+        stage('Download terraform code from Gihub') { 
             steps {
-                git credentialsId: 'kakarlapudi-rama', url: 'https://github.com/kakarlapudi-rama/jenkinpractice.git'
+                git credentialsId: 'javahome2', url: 'https://github.com/lakshmiprasad2019/myweb.git'
             }    
         }
+        
         stage('Terraform Ininitialization') {
             steps {
                 sh """
                     cd /var/lib/jenkins/workspace/terraformjob
-                    terraform destroy
+                    terraform init -reconfigure
                 """    
             }
         }
@@ -25,7 +26,7 @@ pipeline {
             steps {
                 sh """
                     cd /var/lib/jenkins/workspace/terraformjob
-                    terraform plan -out=plan.${BUILD_NUMBER} 
+                    terraform plan -out=plan.${BUILD_NUMBER} -var profile=${params.environment} -var region=${params.region}
                 """
             }    
         }
@@ -37,21 +38,5 @@ pipeline {
                 """
             }
         }
-
-stage('Terraform destroy') {
-            steps {
-                sh """
-                    cd /var/lib/jenkins/workspace/terraformjob
-                    terraform destroy -y
-                """
-            }
-        }
-
-
-
-
-
-
     }    
 }
-
